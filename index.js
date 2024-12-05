@@ -22,6 +22,23 @@ const openai = new OpenAI({
 });
 
 // Endpoint to handle OpenAI requests
+app.post('/transcribe', async (req, res) => {
+    const formData = await req.formData()
+    const file = formData.get('file');
+
+    try {
+        const translation = await openai.audio.translations.create({
+            file: file,
+            model: "whisper-1",
+        });
+
+        return res.json({ transcribe: translation.text });
+
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+})
+
 app.post('/generate', async (req, res) => {
     const { transcribe } = req.body;
 
