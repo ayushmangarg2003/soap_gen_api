@@ -39,6 +39,34 @@ app.post('/transcribe', async (req, res) => {
     }
 })
 
+app.post('/tag', async (req, res) => {
+    const formData = await req.formData()
+    const file = formData.get('file');
+
+    try {
+        const translation = await openai.audio.translations.create({
+            file: file,
+            model: "whisper-1",
+        });
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: process.env.PROMPT },
+                {
+                    role: "user",
+                    content: translation.text,
+                },
+            ],
+        });
+
+        return res.json({ soapnote: completion.choices[0].message });
+
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+})
+
 app.post('/generate', async (req, res) => {
     const { transcribe } = req.body;
 
